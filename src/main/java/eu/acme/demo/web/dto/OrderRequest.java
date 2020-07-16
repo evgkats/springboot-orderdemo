@@ -1,5 +1,7 @@
 package eu.acme.demo.web.dto;
 
+import java.util.List;
+
 public class OrderRequest {
 
     String clientReferenceCode;
@@ -13,4 +15,23 @@ public class OrderRequest {
     }
 
     //TODO: place required fields in order to create an order submitted by client
+    String description;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    List<OrderItemDto> orderItemDtoList;
+
+    public List<OrderItemDto> getOrderItemDtoList() {
+        return orderItemDtoList;
+    }
+
+    public void setOrderItemDtoList(List<OrderItemDto> orderItemDtoList) {
+        this.orderItemDtoList = orderItemDtoList;
+    }
 }
