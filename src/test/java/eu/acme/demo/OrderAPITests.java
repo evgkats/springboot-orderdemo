@@ -1,12 +1,14 @@
 package eu.acme.demo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.acme.demo.domain.Customer;
 import eu.acme.demo.domain.Order;
 import eu.acme.demo.service.OrderService;
 import eu.acme.demo.web.dto.OrderDto;
 import eu.acme.demo.web.dto.OrderItemDto;
 import eu.acme.demo.web.dto.OrderLiteDto;
 import eu.acme.demo.web.dto.OrderRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -42,6 +44,13 @@ class OrderAPITests {
     @Autowired
     private OrderService orderService;
 
+    private Customer customer;
+
+    @BeforeEach
+    public void init() {
+        customer = orderService.createCustomer("John", "Doe");
+    }
+
     @Test
     void testOrderAPI() throws Exception {
         // create order request
@@ -76,6 +85,7 @@ class OrderAPITests {
         orderRequest.setClientReferenceCode(clientRefCode);
         orderRequest.setDescription("this is a test description");
         orderRequest.setOrderItemDtoList(orderItemDtoList);
+        orderRequest.setCustomerId(customer.getId());
 
         return orderRequest;
     }
@@ -167,6 +177,25 @@ class OrderAPITests {
         // then invoke API call to fetch an order that does not exist
         MvcResult orderMvcResult =  getOrderMvcResult(
                 "http://api.okto-demo.eu/orders/" + UUID.randomUUID(), status().isBadRequest());
+    }
+
+    @Test
+    void testOrdersOfCustomer() throws Exception {
+        // create an order
+        OrderRequest orderRequest = createOrderDtoTestObject("006");
+        // convert to json string using Jackson Object Mapper
+        String orderRequestAsString = objectMapper.writeValueAsString(orderRequest);
+        // submit order request for the first time and expect successful response
+        MvcResult submitOrderResult = postOrderMvcResult(orderRequestAsString, status().isOk());
+
+        // fetch orders of customer
+        MvcResult fetchCustomerOrdersResult = getOrderMvcResult("http://api.okto-demo.eu/orders/c/" + customer.getId(), status().isOk());
+        // verify response data is correct, meaning customer has one order
+        List<OrderLiteDto> customerOrderLiteDtoList = objectMapper.readValue(
+                fetchCustomerOrdersResult.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, OrderLiteDto.class));
+
+        assertEquals(1, customerOrderLiteDtoList.size());
     }
 }
 

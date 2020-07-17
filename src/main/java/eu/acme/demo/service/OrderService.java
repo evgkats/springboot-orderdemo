@@ -1,5 +1,6 @@
 package eu.acme.demo.service;
 
+import eu.acme.demo.domain.Customer;
 import eu.acme.demo.domain.Order;
 import eu.acme.demo.web.dto.OrderDto;
 import eu.acme.demo.web.dto.OrderLiteDto;
@@ -17,7 +18,13 @@ public interface OrderService {
 
     List<OrderLiteDto> fetchOrders();
 
+    List<OrderLiteDto> fetchCustomerOrders(Customer customer);
+
     Optional<Order> findOrderById(UUID orderId);
 
     boolean clientRefExists(String clientReference);
+
+    Customer createCustomer(String firstName, String lastName);
+
+    Optional<Customer> getCustomer(UUID customerId);
 }

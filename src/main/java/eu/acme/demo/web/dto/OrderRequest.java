@@ -1,6 +1,7 @@
 package eu.acme.demo.web.dto;
 
 import java.util.List;
+import java.util.UUID;
 
 public class OrderRequest {
 
@@ -33,5 +34,15 @@ public class OrderRequest {
 
     public void setOrderItemDtoList(List<OrderItemDto> orderItemDtoList) {
         this.orderItemDtoList = orderItemDtoList;
+    }
+
+    UUID customerId;
+
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(UUID customerId) {
+        this.customerId = customerId;
     }
 }

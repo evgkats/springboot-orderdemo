@@ -25,6 +25,10 @@ public class Order extends AuditableEntity {
     @Column(name = "status", length = 20, nullable = false)
     private OrderStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
     public String getClientReferenceCode() {
         return clientReferenceCode;
     }
@@ -63,5 +67,13 @@ public class Order extends AuditableEntity {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 }

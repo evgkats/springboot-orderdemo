@@ -1,8 +1,10 @@
 package eu.acme.demo.service;
 
+import eu.acme.demo.domain.Customer;
 import eu.acme.demo.domain.Order;
 import eu.acme.demo.domain.OrderItem;
 import eu.acme.demo.domain.enums.OrderStatus;
+import eu.acme.demo.repository.CustomerRepository;
 import eu.acme.demo.repository.OrderItemRepository;
 import eu.acme.demo.repository.OrderRepository;
 import eu.acme.demo.web.dto.OrderDto;
@@ -23,21 +25,25 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final CustomerRepository customerRepository;
     ModelMapper modelMapper = new ModelMapper();
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, CustomerRepository customerRepositoryRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.customerRepository = customerRepositoryRepository;
     }
 
     @Override
     public Order saveOrderDto(OrderRequest orderRequest) {
+        Optional<Customer> optionalCustomer = customerRepository.findById(orderRequest.getCustomerId());
         Order order = new Order();
         order.setClientReferenceCode(orderRequest.getClientReferenceCode());
         order.setStatus(OrderStatus.SUBMITTED);
         order.setItemCount(orderRequest.getOrderItemDtoList().size());
         order.setDescription(orderRequest.getDescription());
         order.setItemTotalAmount(BigDecimal.ZERO);
+        order.setCustomer(optionalCustomer.isPresent() ? optionalCustomer.get() : null);
         orderRepository.save(order);
         BigDecimal orderSumAmount = BigDecimal.ZERO;
         for (OrderItemDto orderItemDto : orderRequest.getOrderItemDtoList()) {
@@ -81,6 +87,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderLiteDto> fetchCustomerOrders(Customer customer) {
+        List<OrderLiteDto> customerOrdersDto = new ArrayList<>();
+
+        List<Order> customerOrders = orderRepository.findByCustomer(customer);
+        customerOrders.forEach(order -> {
+            customerOrdersDto.add(createOrderDtoFromOrder(order));
+        });
+
+        return customerOrdersDto;
+    }
+
+    @Override
     public Optional<Order> findOrderById(UUID orderId) {
         return orderRepository.findById(orderId);
     }
@@ -89,5 +107,19 @@ public class OrderServiceImpl implements OrderService {
     public boolean clientRefExists(String clientReference) {
         Optional<Order> optionalOrder = orderRepository.findByClientReferenceCode(clientReference);
         return optionalOrder.isPresent();
+    }
+
+    @Override
+    public Customer createCustomer(String firstName, String lastName) {
+        Customer customer = new Customer();
+        customer.setFirstName(firstName);
+        customer.setLastName(lastName);
+        customerRepository.save(customer);
+        return customer;
+    }
+
+    @Override
+    public Optional<Customer> getCustomer(UUID customerId) {
+        return customerRepository.findById(customerId);
     }
 }

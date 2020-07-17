@@ -1,5 +1,6 @@
 package eu.acme.demo.web;
 
+import eu.acme.demo.domain.Customer;
 import eu.acme.demo.domain.Order;
 import eu.acme.demo.service.OrderService;
 import eu.acme.demo.web.dto.OrderDto;
@@ -26,6 +27,17 @@ public class OrderAPI {
     @GetMapping
     public List<OrderLiteDto> fetchOrders() {
         return orderService.fetchOrders();
+    }
+
+    @GetMapping("/c/{customerId}")
+    public List<OrderLiteDto> fetchCustomerOrders(@PathVariable UUID customerId) {
+        Optional<Customer> optionalCustomer = orderService.getCustomer(customerId);
+        if (optionalCustomer.isPresent()) {
+            return orderService.fetchCustomerOrders(optionalCustomer.get());
+        } else {
+            //TODO: add a proper payload that contains an error code and an error message
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The given customerId does not exist in the db!");
+        }
     }
 
     @GetMapping("/{orderId}")
